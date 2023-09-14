@@ -10,6 +10,7 @@ const Grid = () => {
     const [draggingStart, setDraggingStart] = useState(false);
     const [draggingEnd, setDraggingEnd] = useState(false);
     const [isPathFound, setIsPathFound] = useState(false);
+    const [shouldUpdatePath, setShouldUpdatePath] = useState(false);
 
     // Initialize grid
     const initializeGrid = () => {
@@ -90,7 +91,6 @@ const Grid = () => {
         setGrid(newGrid);
         setIsPathFound(false);
     };
-    
 
     const handleButtonClick = () => {
         if (isPathFound) {
@@ -99,7 +99,7 @@ const Grid = () => {
             findPath();
         }
     };
-    const [shouldUpdatePath, setShouldUpdatePath] = useState(false);
+
 
     useEffect(() => {
         if (isPathFound && shouldUpdatePath) {
@@ -176,7 +176,7 @@ const Grid = () => {
         setShouldUpdatePath(true);
     };
 
-    // Update a celly type when wall or dragged over
+    // Update a cell type when wall or dragged over
     const updateCell = (rowIndex, colIndex) => {
         const newGrid = [...grid];
 
