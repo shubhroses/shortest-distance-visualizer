@@ -1,0 +1,35 @@
+/* src/styles/Grid.css */
+
+.grid-container {
+    display: flex;
+    flex-direction: column; /* Makes the rows stack vertically */
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .grid-row {
+    display: flex; /* Makes cells line up horizontally */
+  }
+  
+  .grid-cell {
+    width: 30px; /* Width of each cell */
+    height: 30px; /* Height of each cell */
+    border: 1px solid black; /* Border to see cells clearly */
+  }
+  
+  .grid-cell--start {
+    background-color: green; /* Start cell background color */
+  }
+  
+  .grid-cell--end {
+    background-color: red; /* End cell background color */
+  }
+
+  .grid-cell--wall {
+    background-color: yellow;
+  }
+
+  .grid-cell--path {
+    background-color: blue;
+  }
+  
