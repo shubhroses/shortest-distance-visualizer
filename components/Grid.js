@@ -1,72 +1,83 @@
-// src/components/Grid.js
-import React, { useState } from 'react';
-import { dijkstra } from '../algorithms/Dijkstra';  
+import React, { useEffect, useState } from 'react';
+import { dijkstra } from '../algorithms/Dijkstra';
 import '../styles/Grid.css';
 
 const Grid = () => {
-    // Define grid dimensions
     const rows = 10;
     const cols = 10;
 
-    // State to manage mouse drag events
     const [isMouseDown, setIsMouseDown] = useState(false);
-
-    // State to manage whether we are currently dragging the start or end cell
     const [draggingStart, setDraggingStart] = useState(false);
     const [draggingEnd, setDraggingEnd] = useState(false);
-    
-    // State to manage whether a path is currently displayed or not
     const [isPathFound, setIsPathFound] = useState(false);
 
-    // Initialize grid with start and end cells
+    // Initialize grid
     const initializeGrid = () => {
         const grid = Array.from({ length: rows }, (_, rowIndex) =>
             Array.from({ length: cols }, (_, colIndex) => ({
                 row: rowIndex,
                 col: colIndex,
-                type: 'empty', // by default all cells are empty
+                type: 'empty',
             }))
         );
-        
-        // Initialize the start and end cells
         grid[0][0].type = 'start';
         grid[rows - 1][cols - 1].type = 'end';
         return grid;
     };
 
-    // Initialize grid state
     const [grid, setGrid] = useState(initializeGrid());
 
     // Find and display path using Dijkstra's Algorithm
     const findPath = () => {
-        // (new code)
-        let start, end;
-        for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-            if (grid[row][col].type === 'start') {
-                start = grid[row][col];
+        // Step 1: Clear the existing path on the grid
+        const clearedGrid = grid.map(row =>
+          row.map(cell => {
+            if (cell.type === 'path') {
+                return { ...cell, type: 'empty' };
             }
-            if (grid[row][col].type === 'end') {
-                end = grid[row][col];
-            }
-        }
-        }
-        const path = dijkstra(grid, start, end);
-        if (path !== null) {
-            const newGrid = [...grid];
-            for (const cell of path) {
-                if (newGrid[cell.row][cell.col].type !== 'start' && newGrid[cell.row][cell.col].type !== 'end') {
-                    newGrid[cell.row][cell.col].type = 'path';
+            return cell;
+          })
+        );
+      
+        // Step 2: Identify the start and end cells
+        let start = null;
+        let end = null;
+        for (const row of clearedGrid) {
+            for (const cell of row) {
+                if (cell.type === 'start') {
+                    start = cell;
+                }
+                if (cell.type === 'end') {
+                    end = cell;
                 }
             }
+        }
+      
+        if (!start || !end) {
+            console.error("Start or end cell not found");
+            return;
+        }
+      
+        // Step 3: Run Dijkstra's Algorithm to find the shortest path
+        const { path } = dijkstra(clearedGrid, start, end);
+      
+        // Step 4: Update the grid to show the path
+        if (path) {
+            const newGrid = clearedGrid.map(row =>
+                row.map(cell => {
+                    const isPathCell = path.some(p => p.row === cell.row && p.col === cell.col);
+                    if (isPathCell && cell.type !== 'start' && cell.type !== 'end') {
+                        return { ...cell, type: 'path' };
+                    }
+                    return cell;
+                })
+            );
             setGrid(newGrid);
             setIsPathFound(true);
-        } else {
-            alert("No path exists!");
         }
-    };
+    };      
+    
 
-    // Function to clear the path
     const clearPath = () => {
         const newGrid = [...grid];
         for (let row = 0; row < rows; row++) {
@@ -77,10 +88,10 @@ const Grid = () => {
             }
         }
         setGrid(newGrid);
-        setIsPathFound(false); // Reset the isPathFound state to false
+        setIsPathFound(false);
     };
+    
 
-    // Function to handle button click
     const handleButtonClick = () => {
         if (isPathFound) {
             clearPath();
@@ -88,6 +99,14 @@ const Grid = () => {
             findPath();
         }
     };
+    const [shouldUpdatePath, setShouldUpdatePath] = useState(false);
+
+    useEffect(() => {
+        if (isPathFound && shouldUpdatePath) {
+            findPath();
+            setShouldUpdatePath(false);
+        }
+    }, [grid, isPathFound, shouldUpdatePath]);
 
     // Handle mouse events
     const handleMouseDown = (rowIndex, colIndex) => {
@@ -150,6 +169,11 @@ const Grid = () => {
         newGrid[rowIndex][colIndex].type = type;
 
         setGrid(newGrid);
+
+        if (isPathFound) {
+            findPath();
+        }
+        setShouldUpdatePath(true);
     };
 
     // Update a celly type when wall or dragged over
@@ -168,22 +192,20 @@ const Grid = () => {
     // Render the grid
     return (
         <div className="grid-container">
-        {/* (Button to find ir clear the path) */}
-        <button onClick={handleButtonClick}>{isPathFound ? 'Clear Path' : 'Find Path'}</button>
-
-        {grid.map((row, rowIndex) => (
-            <div key={rowIndex} className="grid-row">
-            {row.map((cell, colIndex) => (
-                <div
-                key={colIndex}
-                className={`grid-cell grid-cell--${cell.type}`}
-                onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
-                onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
-                onMouseUp={handleMouseUp}
-                ></div>
+            <button onClick={handleButtonClick}>{isPathFound ? "Clear Path" : "Animate"}</button>
+            {grid.map((row, rowIndex) => (
+                <div key={rowIndex} className="grid-row">
+                {row.map((cell, colIndex) => (
+                    <div
+                    key={colIndex}
+                    className={`grid-cell grid-cell--${cell.type}`}
+                    onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
+                    onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
+                    onMouseUp={handleMouseUp}
+                    ></div>
+                ))}
+                </div>
             ))}
-            </div>
-        ))}
         </div>
     );
 };
